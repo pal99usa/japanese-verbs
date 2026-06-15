@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="動詞">
+<meta name="theme-color" content="#1a1a2e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Japanese Verbs - Interactive Study</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Space+Grotesk:wght@300;400;600;700&family=Space+Mono&display=swap');
+:root {
+  --ink:#1a1a2e; --paper:#f7f5f0; --red:#c0392b; --gold:#d4a017;
+  --muted:#7a7a8a; --card:#ffffff; --border:#e0ddd6;
+  --g1:#2563eb; --g2:#16a34a; --g3:#9333ea; --hl:#fff3cd; --teal:#0891b2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
+nav{background:var(--ink);color:white;padding:0 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;height:52px}
+.nav-logo{font-size:1.05rem;font-weight:700;white-space:nowrap}
+.nav-logo span{color:var(--gold)}
+.nav-subtitle{font-size:0.72rem;color:#888;text-transform:uppercase;letter-spacing:0.5px}
+main{max-width:900px;margin:0 auto;padding:20px 16px 90px;padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--ink);display:flex;align-items:stretch;z-index:200;padding-bottom:env(safe-area-inset-bottom);border-top:1px solid #333}
+.bnavbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;color:#888;cursor:pointer;padding:10px 4px;min-height:56px;font-family:'Space Grotesk',sans-serif;-webkit-tap-highlight-color:transparent;transition:color 0.15s}
+.bnavbtn svg{width:22px;height:22px;flex-shrink:0}
+.bnavbtn span{font-size:0.62rem;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;white-space:nowrap}
+.bnavbtn.active{color:var(--gold)}
+.bnavbtn.more-active{color:var(--gold)}
+/* MORE DRAWER */
+.more-drawer{position:fixed;bottom:0;left:0;right:0;background:var(--ink);z-index:300;transform:translateY(100%);transition:transform 0.25s ease;border-top:1px solid #333;padding-bottom:env(safe-area-inset-bottom)}
+.more-drawer.open{transform:translateY(0)}
+.more-drawer-inner{padding:8px 16px 16px}
+.more-item{display:block;width:100%;padding:15px 16px;background:#2d2d4a;border:none;border-radius:10px;color:white;font-family:'Space Grotesk',sans-serif;font-size:1rem;font-weight:600;text-align:left;cursor:pointer;margin-bottom:8px;-webkit-tap-highlight-color:transparent}
+.more-close{display:block;width:100%;padding:14px;background:none;border:1px solid #444;border-radius:10px;color:#888;font-family:'Space Grotesk',sans-serif;font-size:0.9rem;font-weight:600;text-align:center;cursor:pointer;margin-top:4px;-webkit-tap-highlight-color:transparent}
+.more-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:290}
+.more-overlay.open{display:block}
+.section{display:none}
+.section.active{display:block}
+h1{font-size:1.6rem;font-weight:700;margin-bottom:6px;letter-spacing:-0.5px}
+h2{font-size:1.1rem;font-weight:600;margin:24px 0 10px}
+p.lead{color:var(--muted);font-size:0.88rem;margin-bottom:20px;line-height:1.6}
+.badge{display:inline-block;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px}
+.bg1{background:#dbeafe;color:var(--g1)} .bg2{background:#dcfce7;color:var(--g2)} .bg3{background:#f3e8ff;color:var(--g3)}
+.gcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:28px}
+.gcard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px}
+.gcard .gt{font-size:1rem;font-weight:700;margin-bottom:4px}
+.gcard .gs{font-size:0.8rem;color:var(--muted);margin-bottom:10px}
+.gcard .gr{font-family:'Space Mono',monospace;font-size:0.82rem;background:var(--paper);padding:6px 10px;border-radius:6px;margin-top:6px}
+.c1{border-top:3px solid var(--g1)} .c2{border-top:3px solid var(--g2)} .c3{border-top:3px solid var(--g3)}
+.twrap{overflow-x:auto;margin-bottom:20px}
+table{border-collapse:collapse;width:100%;font-size:0.85rem}
+th{background:var(--ink);color:white;padding:8px 12px;text-align:left;font-weight:600;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.3px}
+td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:#fafaf8}
+.ro{font-family:'Space Mono',monospace;font-size:0.82rem}
+.hi{font-family:'Noto Sans JP',sans-serif;color:var(--muted);font-size:0.85rem}
+.en{color:#555;font-size:0.8rem}
+td.fn{font-weight:600;font-size:0.78rem;text-transform:uppercase;color:var(--muted)}
+.hlrow td{background:var(--hl)!important}
+.vcontrols{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.vcontrols select,.vcontrols input{font-family:'Space Grotesk',sans-serif;font-size:0.85rem;padding:8px 12px;border:1px solid var(--border);border-radius:7px;background:white;color:var(--ink);outline:none}
+.vcontrols select:focus,.vcontrols input:focus{border-color:var(--gold)}
+.vcard{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px}
+.vhdr{display:flex;align-items:baseline;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.vdict{font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700}
+.vhira{font-family:'Noto Sans JP',sans-serif;font-size:1rem;color:var(--muted)}
+.vmean{font-size:0.88rem;color:#555}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.fchip{background:var(--paper);border-radius:8px;padding:8px 10px}
+.fchip .fl{font-size:0.68rem;text-transform:uppercase;font-weight:600;color:var(--muted);letter-spacing:0.5px;margin-bottom:3px}
+.fchip .fv{font-family:'Space Mono',monospace;font-size:0.82rem;font-weight:600}
+.fchip .fh{font-family:'Noto Sans JP',sans-serif;font-size:0.78rem;color:var(--muted)}
+.rblock{background:var(--card);border-left:3px solid var(--gold);border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:12px}
+.rblock .rt{font-weight:700;font-size:0.88rem;margin-bottom:8px}
+.rblock .rp{font-family:'Space Mono',monospace;font-size:0.82rem;background:var(--paper);display:inline-block;padding:3px 8px;border-radius:4px;margin-bottom:8px}
+.regs{display:flex;flex-wrap:wrap;gap:6px}
+.reg{font-size:0.8rem;background:var(--paper);padding:3px 8px;border-radius:4px;font-family:'Space Mono',monospace}
+.reg .ar{color:var(--red)}
+.ibox{background:var(--hl);border-radius:10px;padding:16px;margin:12px 0;font-size:0.88rem;line-height:1.6}
+.ibox strong{display:block;margin-bottom:6px}
+.wbox{background:#fee2e2;border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:12px 16px;margin:12px 0;font-size:0.85rem;line-height:1.6}
+.tree-wrap{overflow-x:auto;padding-bottom:8px}
+.tree{display:flex;flex-direction:column;min-width:320px}
+.tnode{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:6px}
+.tnode.res-g2{border-color:var(--g2);background:#f0fdf4}
+.tnode.res-g1{border-color:var(--g1);background:#eff6ff}
+.tnode.res-g3{border-color:var(--g3);background:#faf5ff}
+.tnode.res-warn{border-color:var(--red);background:#fef2f2}
+.tstep{font-size:0.7rem;font-weight:700;background:var(--ink);color:white;padding:2px 7px;border-radius:10px;white-space:nowrap;align-self:center;flex-shrink:0}
+.ttext{font-size:0.88rem;line-height:1.5;flex:1}
+.ttext .eg{font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--muted)}
+.tcon{width:2px;background:var(--border);height:14px;margin:0 auto -4px}
+.fsec{margin-bottom:32px}
+.fhdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid var(--border);flex-wrap:wrap}
+.fhdr h2{margin:0}
+.ftag{font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;background:var(--teal);color:white}
+.uchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.uchip{font-size:0.78rem;background:var(--card);border:1px solid var(--border);padding:4px 10px;border-radius:20px}
+.exrow{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px}
+.exjp{font-family:'Space Mono',monospace;font-size:0.9rem;font-weight:600;margin-bottom:4px}
+.exhi{font-family:'Noto Sans JP',sans-serif;font-size:0.85rem;color:var(--muted);margin-bottom:4px}
+.exen{font-size:0.82rem;color:#555}
+.qsetup{margin-bottom:20px}
+.qopts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.qbtn{padding:8px 14px;border:2px solid var(--border);border-radius:7px;background:white;font-family:'Space Grotesk',sans-serif;font-size:0.82rem;cursor:pointer;font-weight:600;transition:all 0.15s}
+.qbtn.sel{border-color:var(--ink);background:var(--ink);color:white}
+.btn{display:inline-block;padding:10px 22px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:0.88rem;cursor:pointer;border:none;transition:all 0.15s}
+.btnp{background:var(--ink);color:white}
+.btnp:hover{background:#2d2d4a}
+.btns{background:white;color:var(--ink);border:2px solid var(--ink)}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px 20px;margin-bottom:14px;text-align:center}
+.qprog{font-size:0.78rem;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px}
+.qprompt{font-size:0.82rem;color:var(--muted);margin-bottom:6px}
+.qword{font-family:'Space Mono',monospace;font-size:1.8rem;font-weight:700;margin-bottom:4px}
+.qhira{font-family:'Noto Sans JP',sans-serif;font-size:1.1rem;color:var(--muted);margin-bottom:4px}
+.qmean{font-size:0.88rem;color:#666;margin-bottom:18px}
+.qask{font-size:0.95rem;font-weight:600;margin-bottom:16px}
+.qchoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:440px;margin:0 auto}
+.qchoice{padding:13px;border:2px solid var(--border);border-radius:9px;background:white;font-family:'Space Mono',monospace;font-size:0.85rem;cursor:pointer;transition:all 0.15s;text-align:center}
+.qchoice:hover{border-color:var(--ink)}
+.qchoice.correct{border-color:var(--g2);background:#dcfce7;color:var(--g2)}
+.qchoice.wrong{border-color:var(--red);background:#fee2e2;color:var(--red)}
+.qchoice.reveal{border-color:var(--g2);background:#dcfce7;color:var(--g2)}
+.qfb{margin-top:14px;padding:10px 16px;border-radius:8px;font-size:0.88rem;font-weight:600}
+.qfb.correct{background:#dcfce7;color:var(--g2)}
+.qfb.wrong{background:#fee2e2;color:var(--red)}
+.qscore{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px 24px;text-align:center}
+.qscore .snum{font-size:3rem;font-weight:700;margin-bottom:6px}
+.qscore .slbl{color:var(--muted);font-size:0.88rem;margin-bottom:20px}
+.barea{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.bstep{margin-bottom:16px}
+.slbl2{font-size:0.75rem;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;color:var(--muted);margin-bottom:6px}
+.bsel{width:100%;font-family:'Space Grotesk',sans-serif;font-size:0.88rem;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:white;color:var(--ink);outline:none}
+.bsel:focus{border-color:var(--gold)}
+.bout{background:var(--ink);color:white;border-radius:10px;padding:18px 20px;margin-top:14px}
+.bout .or{font-family:'Space Mono',monospace;font-size:1.2rem;font-weight:700;margin-bottom:6px}
+.bout .oh{font-family:'Noto Sans JP',sans-serif;font-size:1rem;color:#bbb;margin-bottom:4px}
+.bout .oe{font-size:0.88rem;color:#aaa}
+.bout .obd{margin-top:12px;border-top:1px solid #333;padding-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.bp{font-size:0.75rem;background:#2d2d4a;padding:4px 8px;border-radius:4px}
+.bp span{color:var(--gold)}
+.cpair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.ccard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.ccard.cc1{border-top:3px solid var(--g1)} .ccard.cc2{border-top:3px solid var(--g2)}
+.cdict{font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;margin-bottom:2px;margin-top:8px}
+.chira{font-family:'Noto Sans JP',sans-serif;font-size:0.9rem;color:var(--muted);margin-bottom:6px}
+.ceng{font-size:0.82rem;color:#555;margin-bottom:8px}
+.cte .clbl{font-weight:600;color:var(--muted);font-size:0.72rem;text-transform:uppercase}
+@media(max-width:600px){
+  .qchoices{grid-template-columns:1fr}
+  .qword{font-size:1.4rem}
+  h1{font-size:1.2rem}
+  h2{font-size:1rem}
+  .fgrid{grid-template-columns:1fr 1fr}
+  .cpair{grid-template-columns:1fr}
+  .gcards{grid-template-columns:1fr}
+  table{font-size:0.78rem}
+  th{font-size:0.72rem;padding:7px 8px}
+  td{padding:7px 8px}
+  .ro{font-size:0.76rem}
+  .exjp{font-size:0.82rem}
+  .vcard{padding:14px}
+  .fchip{padding:6px 8px}
+  .fchip .fv{font-size:0.76rem}
+  .rblock{padding:12px}
+  .tnode{padding:10px 12px}
+  .ttext{font-size:0.82rem}
+  .ibox{font-size:0.82rem}
+  .wbox{font-size:0.8rem}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">&#21160;&#35486; <span>Verbs</span></div>
+  <div class="nav-subtitle">Interactive Study</div>
+</nav>
+<main>
+
+<!-- ======= OVERVIEW ======= -->
+<div id="overview" class="section active">
+  <h1>Japanese Verb Groups</h1>
+  <p class="lead">All Japanese verbs fall into one of three groups. The group determines how you conjugate &mdash; once you know the pattern, it applies to every verb in that group.</p>
+  <div class="gcards">
+    <div class="gcard c1">
+      <div class="gt"><span class="badge bg1">Group 1</span></div>
+      <div class="gs">U-verbs / Godan &mdash; the largest group</div>
+      <div class="gr">Dictionary ends in: <strong>~u</strong></div>
+      <div class="gr" style="margin-top:4px">Masu stem: drop ~u, add <strong>~imasu</strong></div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-top:8px">iku, nomu, yomu, kaku, hanasu</p>
+      <p style="font-size:0.75rem;color:var(--red);margin-top:4px">&#9888; Some -eru/-iru verbs are G1 &mdash; no shortcut!</p>
+    </div>
+    <div class="gcard c2">
+      <div class="gt"><span class="badge bg2">Group 2</span></div>
+      <div class="gs">Ru-verbs / Ichidan</div>
+      <div class="gr">Dictionary ends in: <strong>~eru / ~iru</strong></div>
+      <div class="gr" style="margin-top:4px">Masu: drop ~ru, add <strong>~masu</strong></div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-top:8px">taberu, miru, neru, wasureru, oriru</p>
+    </div>
+    <div class="gcard c3">
+      <div class="gt"><span class="badge bg3">Group 3</span></div>
+      <div class="gs">Irregular &mdash; only 2 roots</div>
+      <div class="gr"><strong>kuru</strong> &#8594; kimasu (to come)</div>
+      <div class="gr" style="margin-top:4px"><strong>suru</strong> &#8594; shimasu (to do)</div>
+      <p style="font-size:0.78rem;color:var(--muted);margin-top:8px">Suru compounds: kekkon suru, benkyou suru...</p>
+    </div>
+  </div>
+
+  <h2>All Forms &mdash; Group 2 (easiest first)</h2>
+  <div class="twrap"><table>
+    <thead><tr><th>Form</th><th>taberu (eat)</th><th>miru (watch)</th><th>oriru (get off)</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr class="hlrow"><td class="fn">Dictionary</td><td class="ro">taberu</td><td class="ro">miru</td><td class="ro">oriru</td><td class="en">Plain present / casual</td></tr>
+      <tr><td class="fn">Masu</td><td class="ro">tabemasu</td><td class="ro">mimasu</td><td class="ro">orimasu</td><td class="en">Polite present</td></tr>
+      <tr><td class="fn">Masen</td><td class="ro">tabemasen</td><td class="ro">mimasen</td><td class="ro">orimasen</td><td class="en">Polite negative</td></tr>
+      <tr><td class="fn">Mashita</td><td class="ro">tabemashita</td><td class="ro">mimashita</td><td class="ro">orimashita</td><td class="en">Polite past</td></tr>
+      <tr><td class="fn">Nai</td><td class="ro">tabenai</td><td class="ro">minai</td><td class="ro">orinai</td><td class="en">Plain negative</td></tr>
+      <tr class="hlrow"><td class="fn">Te-form</td><td class="ro">tabete</td><td class="ro">mite</td><td class="ro">orite</td><td class="en">Requests, linking actions</td></tr>
+      <tr><td class="fn">Ta (past)</td><td class="ro">tabeta</td><td class="ro">mita</td><td class="ro">orita</td><td class="en">Plain past</td></tr>
+      <tr class="hlrow"><td class="fn">Tai (want to)</td><td class="ro">tabetai</td><td class="ro">mitai</td><td class="ro">oritai</td><td class="en">I want to V</td></tr>
+      <tr><td class="fn">Potential (can)</td><td class="ro">taberareru</td><td class="ro">mirareru</td><td class="ro">oriraeru</td><td class="en">Can / able to V</td></tr>
+      <tr class="hlrow"><td class="fn">Volitional</td><td class="ro">tabeyou</td><td class="ro">miyou</td><td class="ro">oriyou</td><td class="en">Let's V / shall we</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>All Forms &mdash; Group 1</h2>
+  <div class="twrap"><table>
+    <thead><tr><th>Form</th><th>nomu (drink)</th><th>kaku (write)</th><th>hanasu (speak)</th><th>iku (go)</th></tr></thead>
+    <tbody>
+      <tr class="hlrow"><td class="fn">Dictionary</td><td class="ro">nomu</td><td class="ro">kaku</td><td class="ro">hanasu</td><td class="ro">iku</td></tr>
+      <tr><td class="fn">Masu</td><td class="ro">nomimasu</td><td class="ro">kakimasu</td><td class="ro">hanashimasu</td><td class="ro">ikimasu</td></tr>
+      <tr><td class="fn">Nai</td><td class="ro">nomanai</td><td class="ro">kakanai</td><td class="ro">hanasanai</td><td class="ro">ikanai</td></tr>
+      <tr class="hlrow"><td class="fn">Te-form</td><td class="ro">nonde</td><td class="ro">kaite</td><td class="ro">hanashite</td><td class="ro">itte &#9888;</td></tr>
+      <tr><td class="fn">Ta (past)</td><td class="ro">nonda</td><td class="ro">kaita</td><td class="ro">hanashita</td><td class="ro">itta &#9888;</td></tr>
+      <tr class="hlrow"><td class="fn">Tai (want to)</td><td class="ro">nomitai</td><td class="ro">kakitai</td><td class="ro">hanashitai</td><td class="ro">ikitai</td></tr>
+      <tr><td class="fn">Potential (can)</td><td class="ro">nomeru</td><td class="ro">kakeru</td><td class="ro">hanaseru</td><td class="ro">ikeru</td></tr>
+      <tr class="hlrow"><td class="fn">Volitional</td><td class="ro">nomou</td><td class="ro">kakou</td><td class="ro">hanasou</td><td class="ro">ikou</td></tr>
+    </tbody>
+  </table></div>
+  <p style="font-size:0.8rem;color:var(--muted);margin-bottom:16px">&#9888; iku te/ta forms: itte/itta &mdash; NOT iite/iita. Exception &mdash; memorise it.</p>
+
+  <h2>All Forms &mdash; Group 3</h2>
+  <div class="twrap"><table>
+    <thead><tr><th>Form</th><th>kuru (come)</th><th>suru (do)</th><th>kekkon suru (marry)</th></tr></thead>
+    <tbody>
+      <tr class="hlrow"><td class="fn">Dictionary</td><td class="ro">kuru</td><td class="ro">suru</td><td class="ro">kekkon suru</td></tr>
+      <tr><td class="fn">Masu</td><td class="ro">kimasu</td><td class="ro">shimasu</td><td class="ro">kekkon shimasu</td></tr>
+      <tr><td class="fn">Nai</td><td class="ro">konai</td><td class="ro">shinai</td><td class="ro">kekkon shinai</td></tr>
+      <tr class="hlrow"><td class="fn">Te-form</td><td class="ro">kite</td><td class="ro">shite</td><td class="ro">kekkon shite</td></tr>
+      <tr><td class="fn">Ta (past)</td><td class="ro">kita</td><td class="ro">shita</td><td class="ro">kekkon shita</td></tr>
+      <tr class="hlrow"><td class="fn">Tai (want to)</td><td class="ro">kitai</td><td class="ro">shitai</td><td class="ro">kekkon shitai</td></tr>
+      <tr><td class="fn">Potential (can)</td><td class="ro">korareru</td><td class="ro">dekiru</td><td class="ro">kekkon dekiru</td></tr>
+      <tr class="hlrow"><td class="fn">Volitional</td><td class="ro">koyou</td><td class="ro">shiyou</td><td class="ro">kekkon shiyou</td></tr>
+    </tbody>
+  </table></div>
+  <div class="ibox" style="margin-top:4px"><strong>suru potential = dekiru</strong>
+    dekiru is a separate verb meaning "can do / is possible". It replaces "suru rareru" entirely.<br>
+    "Can you speak Japanese?" = nihongo ga dekimasu ka? &mdash; not nihongo ga suru raremasu ka?
+  </div>
+</div>
+
+<!-- ======= CONJUGATOR ======= -->
+<div id="explorer" class="section">
+  <h1>Verb Conjugator</h1>
+  <p class="lead">Browse all verbs with every form shown side by side.</p>
+  <div class="vcontrols">
+    <select id="gf" onchange="renderVerbs()">
+      <option value="all">All Groups</option>
+      <option value="1">Group 1</option>
+      <option value="2">Group 2</option>
+      <option value="3">Group 3</option>
+    </select>
+    <input type="text" id="vs" placeholder="Search verbs..." oninput="renderVerbs()" style="flex:1;min-width:120px">
+  </div>
+  <div id="vlist"></div>
+</div>
+
+<!-- ======= TE-FORM ======= -->
+<div id="teform" class="section">
+  <h1>Te-form Rules &mdash; Group 1</h1>
+  <p class="lead">Group 2 is easy: drop -ru, add -te. Group 1 uses 5 sound patterns based on the masu-stem ending.</p>
+  <div class="rblock">
+    <div class="rt">1. Stem ends in i / chi / ri &rarr; <span style="color:var(--red)">tte</span></div>
+    <div class="rp">~imasu / ~chimasu / ~rimasu &rarr; ~tte</div>
+    <div class="regs">
+      <span class="reg">aimasu <span class="ar">&rarr;</span> atte</span>
+      <span class="reg">tachimasu <span class="ar">&rarr;</span> tatte</span>
+      <span class="reg">tsukurimasu <span class="ar">&rarr;</span> tsukutte</span>
+      <span class="reg">kaerimasu <span class="ar">&rarr;</span> kaette</span>
+    </div>
+  </div>
+  <div class="rblock">
+    <div class="rt">2. Stem ends in ni / mi / bi &rarr; <span style="color:var(--red)">nde</span></div>
+    <div class="rp">~nimasu / ~mimasu / ~bimasu &rarr; ~nde</div>
+    <div class="regs">
+      <span class="reg">shinimasu <span class="ar">&rarr;</span> shinde</span>
+      <span class="reg">nomimasu <span class="ar">&rarr;</span> nonde</span>
+      <span class="reg">asobimasu <span class="ar">&rarr;</span> asonde</span>
+    </div>
+  </div>
+  <div class="rblock">
+    <div class="rt">3. Stem ends in ki &rarr; <span style="color:var(--red)">ite</span> &nbsp;<span style="color:var(--red);font-size:0.8rem">Exception: iku &rarr; itte!</span></div>
+    <div class="rp">~kimasu &rarr; ~ite</div>
+    <div class="regs">
+      <span class="reg">kikimasu <span class="ar">&rarr;</span> kiite</span>
+      <span class="reg">kakimasu <span class="ar">&rarr;</span> kaite</span>
+      <span class="reg">arukimasu <span class="ar">&rarr;</span> aruite</span>
+      <span class="reg" style="border:1px solid var(--red)">ikimasu <span class="ar">&rarr;</span> itte &#9888;</span>
+    </div>
+  </div>
+  <div class="rblock">
+    <div class="rt">4. Stem ends in gi &rarr; <span style="color:var(--red)">ide</span></div>
+    <div class="rp">~gimasu &rarr; ~ide</div>
+    <div class="regs">
+      <span class="reg">isogimasu <span class="ar">&rarr;</span> isoide</span>
+      <span class="reg">oyogimasu <span class="ar">&rarr;</span> oyoide</span>
+    </div>
+  </div>
+  <div class="rblock">
+    <div class="rt">5. Stem ends in shi &rarr; <span style="color:var(--red)">shite</span></div>
+    <div class="rp">~shimasu &rarr; ~shite</div>
+    <div class="regs">
+      <span class="reg">hanashimasu <span class="ar">&rarr;</span> hanashite</span>
+      <span class="reg">keshimasu <span class="ar">&rarr;</span> keshite</span>
+    </div>
+  </div>
+  <div class="ibox"><strong>Analogy: sound smoothing</strong>
+    The te-form picks the easiest ending to pronounce after each stem sound. The n/m/b &rarr; nde rule exists because all three are nasal sounds &mdash; your nose resonates on all of them &mdash; so the te-form stays nasal. Your mouth is already in position.
+  </div>
+  <h2>Ta-form follows identical rules</h2>
+  <p style="font-size:0.88rem;color:#555;line-height:1.6;margin-bottom:12px">Same sound rules as the te-form. Just swap the final -e for -a.</p>
+  <div class="twrap"><table>
+    <thead><tr><th>Stem ending</th><th>Te-form</th><th>Ta-form</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>i / chi / ri</td><td class="ro">tte</td><td class="ro">tta</td><td class="ro">matte &rarr; matta</td></tr>
+      <tr><td>ni / mi / bi</td><td class="ro">nde</td><td class="ro">nda</td><td class="ro">nonde &rarr; nonda</td></tr>
+      <tr><td>ki</td><td class="ro">ite</td><td class="ro">ita</td><td class="ro">kaite &rarr; kaita</td></tr>
+      <tr><td>gi</td><td class="ro">ide</td><td class="ro">ida</td><td class="ro">isoide &rarr; isoida</td></tr>
+      <tr><td>shi</td><td class="ro">shite</td><td class="ro">shita</td><td class="ro">hanashite &rarr; hanashita</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- ======= NEW FORMS ======= -->
+<div id="newforms" class="section">
+  <h1>Essential New Forms</h1>
+  <p class="lead">Five high-frequency forms and patterns you will encounter constantly in everyday Japanese.</p>
+
+  <!-- TAI -->
+  <div class="fsec">
+    <div class="fhdr"><h2>Tai-form &mdash; "Want to V"</h2><span class="ftag">Very Common</span></div>
+    <div class="uchips">
+      <span class="uchip">nani wo tabetai? &mdash; what do you want to eat?</span>
+      <span class="uchip">nihon ni ikitai &mdash; I want to go to Japan</span>
+      <span class="uchip">netai &mdash; I want to sleep</span>
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>Group</th><th>Verb</th><th>Tai-form</th><th>Meaning</th><th>How to form</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge bg2">G2</span></td><td class="ro">taberu</td><td class="ro">tabetai</td><td class="en">want to eat</td><td class="en">drop -ru + tai</td></tr>
+        <tr><td><span class="badge bg2">G2</span></td><td class="ro">miru</td><td class="ro">mitai</td><td class="en">want to watch</td><td class="en">drop -ru + tai</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">nomu</td><td class="ro">nomitai</td><td class="en">want to drink</td><td class="en">masu stem + tai</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">iku</td><td class="ro">ikitai</td><td class="en">want to go</td><td class="en">masu stem + tai</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">kau</td><td class="ro">kaitai</td><td class="en">want to buy</td><td class="en">masu stem + tai</td></tr>
+        <tr><td><span class="badge bg3">G3</span></td><td class="ro">suru</td><td class="ro">shitai</td><td class="en">want to do</td><td class="en">shi + tai</td></tr>
+        <tr><td><span class="badge bg3">G3</span></td><td class="ro">kuru</td><td class="ro">kitai</td><td class="en">want to come</td><td class="en">ki + tai</td></tr>
+      </tbody>
+    </table></div>
+    <div class="ibox"><strong>Key rule &mdash; same stem as masu-form:</strong>
+      For G2: tabemasu &rarr; tabe + tai. For G1: nomimasu &rarr; nomi + tai. Just swap -masu for -tai.
+    </div>
+    <div class="ibox" style="background:#e0f2fe"><strong>Tai-form conjugates like an i-adjective:</strong>
+      ikitai &rarr; ikitakunai (don't want to go) &rarr; ikitakatta (wanted to go) &rarr; ikitakunakatta (didn't want to go)
+    </div>
+    <h2 style="margin-top:20px">Example sentences</h2>
+    <div class="exrow"><div class="exjp">sushi wo tabetai desu.</div><div class="exhi">&#12377;&#12375;&#12434;&#12383;&#12409;&#12383;&#12356;&#12391;&#12377;&#12290;</div><div class="exen">I want to eat sushi.</div></div>
+    <div class="exrow"><div class="exjp">nani wo shitai desu ka?</div><div class="exhi">&#12394;&#12395;&#12434;&#12375;&#12383;&#12356;&#12391;&#12377;&#12363;&#65311;</div><div class="exen">What do you want to do?</div></div>
+    <div class="exrow"><div class="exjp">kyou wa doko mo ikitakunai.</div><div class="exhi">&#12365;&#12423;&#12358;&#12399;&#12393;&#12371;&#12418;&#12356;&#12365;&#12383;&#12367;&#12394;&#12356;&#12290;</div><div class="exen">I don't want to go anywhere today. (casual)</div></div>
+    <div class="exrow"><div class="exjp">motto hanashitakatta desu.</div><div class="exhi">&#12418;&#12387;&#12392;&#12399;&#12394;&#12375;&#12383;&#12363;&#12387;&#12383;&#12391;&#12377;&#12290;</div><div class="exen">I wanted to talk more.</div></div>
+  </div>
+
+  <!-- POTENTIAL -->
+  <div class="fsec">
+    <div class="fhdr"><h2>Potential form &mdash; "Can V / Be able to V"</h2><span class="ftag">Very Common</span></div>
+    <div class="uchips">
+      <span class="uchip">karai mono ga taberareru? &mdash; can you eat spicy food?</span>
+      <span class="uchip">kuruma ga unten dekiru &mdash; I can drive</span>
+      <span class="uchip">oyogenai &mdash; I can't swim</span>
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>Group</th><th>Dictionary</th><th>Potential</th><th>Meaning</th><th>How to form</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge bg2">G2</span></td><td class="ro">taberu</td><td class="ro">taberareru</td><td class="en">can eat</td><td class="en">drop -ru + rareru</td></tr>
+        <tr><td><span class="badge bg2">G2</span></td><td class="ro">miru</td><td class="ro">mirareru</td><td class="en">can watch</td><td class="en">drop -ru + rareru</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">nomu</td><td class="ro">nomeru</td><td class="en">can drink</td><td class="en">u &rarr; eru</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">kaku</td><td class="ro">kakeru</td><td class="en">can write</td><td class="en">u &rarr; eru</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">iku</td><td class="ro">ikeru</td><td class="en">can go</td><td class="en">u &rarr; eru</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">hanasu</td><td class="ro">hanaseru</td><td class="en">can speak</td><td class="en">u &rarr; eru</td></tr>
+        <tr><td><span class="badge bg3">G3</span></td><td class="ro">suru</td><td class="ro">dekiru</td><td class="en">can do</td><td class="en">irregular &mdash; dekiru</td></tr>
+        <tr><td><span class="badge bg3">G3</span></td><td class="ro">kuru</td><td class="ro">korareru</td><td class="en">can come</td><td class="en">irregular &mdash; korareru</td></tr>
+      </tbody>
+    </table></div>
+    <div class="ibox"><strong>Group 1 potential &mdash; clean rule:</strong>
+      The final -u shifts to -eru. Think of it as sliding one row down the vowel chart: u &rarr; e + ru.<br>
+      nomu &rarr; nomeru &nbsp;|&nbsp; kaku &rarr; kakeru &nbsp;|&nbsp; matsu &rarr; materu &nbsp;|&nbsp; oyogu &rarr; oyogeru
+    </div>
+    <div class="ibox" style="background:#e0f2fe"><strong>Two accepted forms for Group 2 potential:</strong>
+      Both taberareru (full) and tabereru (ra-drop) are used. The short form is common in casual speech but frowned on in formal writing. You will hear both.
+    </div>
+    <h2 style="margin-top:20px">Example sentences</h2>
+    <div class="exrow"><div class="exjp">nihongo ga hanasemasu ka?</div><div class="exhi">&#12395;&#12411;&#12435;&#12372;&#12364;&#12399;&#12394;&#12379;&#12414;&#12377;&#12363;&#65311;</div><div class="exen">Can you speak Japanese?</div></div>
+    <div class="exrow"><div class="exjp">ashita koraremasen.</div><div class="exhi">&#12354;&#12375;&#12383;&#12371;&#12425;&#12428;&#12414;&#12379;&#12435;&#12290;</div><div class="exen">I can't come tomorrow.</div></div>
+    <div class="exrow"><div class="exjp">kono kanji ga yomemasu ka?</div><div class="exhi">&#12371;&#12398;&#12363;&#12435;&#12376;&#12364;&#12424;&#12417;&#12414;&#12377;&#12363;&#65311;</div><div class="exen">Can you read this kanji?</div></div>
+    <div class="exrow"><div class="exjp">piano ga hikeru you ni naritai.</div><div class="exen">I want to become able to play piano.</div></div>
+  </div>
+
+  <!-- VOLITIONAL -->
+  <div class="fsec">
+    <div class="fhdr"><h2>Volitional form &mdash; "Let's V / Shall we?"</h2><span class="ftag">Common</span></div>
+    <div class="uchips">
+      <span class="uchip">nomimashou! &mdash; let's drink!</span>
+      <span class="uchip">ikou ka? &mdash; shall we go?</span>
+      <span class="uchip">ganbarimashou &mdash; let's do our best</span>
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>Group</th><th>Dictionary</th><th>Polite (~mashou)</th><th>Plain (~you/~ou)</th><th>How to form</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge bg2">G2</span></td><td class="ro">taberu</td><td class="ro">tabemashou</td><td class="ro">tabeyou</td><td class="en">drop -ru + you / mashou</td></tr>
+        <tr><td><span class="badge bg2">G2</span></td><td class="ro">miru</td><td class="ro">mimashou</td><td class="ro">miyou</td><td class="en">drop -ru + you / mashou</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">nomu</td><td class="ro">nomimashou</td><td class="ro">nomou</td><td class="en">u &rarr; ou / mashou</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">iku</td><td class="ro">ikimashou</td><td class="ro">ikou</td><td class="en">u &rarr; ou / mashou</td></tr>
+        <tr><td><span class="badge bg1">G1</span></td><td class="ro">kaku</td><td class="ro">kakimashou</td><td class="ro">kakou</td><td class="en">u &rarr; ou / mashou</td></tr>
+        <tr><td><span class="badge bg3">G3</span></td><td class="ro">suru</td><td class="ro">shimashou</td><td class="ro">shiyou</td><td class="en">irregular</td></tr>
+        <tr><td><span class="badge bg3">G3</span></td><td class="ro">kuru</td><td class="ro">kimashou</td><td class="ro">koyou</td><td class="en">irregular</td></tr>
+      </tbody>
+    </table></div>
+    <div class="ibox"><strong>Polite vs plain:</strong>
+      ~mashou is polite &mdash; use with anyone you aren't close to, or in formal situations.<br>
+      ~you / ~ou is plain &mdash; use with friends. Also works as self-talk: ikou... = "I guess I'll go / time to go."
+    </div>
+    <h2 style="margin-top:20px">Example sentences</h2>
+    <div class="exrow"><div class="exjp">issho ni tabemashou!</div><div class="exen">Let's eat together!</div></div>
+    <div class="exrow"><div class="exjp">eiga wo mimashou ka?</div><div class="exen">Shall we watch a movie?</div></div>
+    <div class="exrow"><div class="exjp">sorosoro ikou ka.</div><div class="exen">Shall we get going? (casual)</div></div>
+    <div class="exrow"><div class="exjp">motto benkyou shiyou!</div><div class="exen">Let's study more! (casual)</div></div>
+  </div>
+
+  <!-- NAIDE KUDASAI -->
+  <div class="fsec">
+    <div class="fhdr"><h2>~naide kudasai &mdash; "Please don't V"</h2><span class="ftag">Essential</span></div>
+    <div class="uchips">
+      <span class="uchip">hanasanaide kudasai &mdash; please don't speak</span>
+      <span class="uchip">toranaide kudasai &mdash; please don't take photos</span>
+      <span class="uchip">akenaide kudasai &mdash; please don't open it</span>
+    </div>
+    <div class="ibox"><strong>How to form: nai-form, drop the final -i, add de kudasai</strong>
+      tabenai &rarr; tabenaide kudasai &nbsp;|&nbsp; ikanai &rarr; ikanaide kudasai &nbsp;|&nbsp; shinai &rarr; shinaide kudasai
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>Dictionary</th><th>Nai-form</th><th>Naide kudasai</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td class="ro">taberu</td><td class="ro">tabenai</td><td class="ro">tabenaide kudasai</td><td class="en">Please don't eat</td></tr>
+        <tr><td class="ro">iku</td><td class="ro">ikanai</td><td class="ro">ikanaide kudasai</td><td class="en">Please don't go</td></tr>
+        <tr><td class="ro">hanasu</td><td class="ro">hanasanai</td><td class="ro">hanasanaide kudasai</td><td class="en">Please don't speak</td></tr>
+        <tr><td class="ro">akeru</td><td class="ro">akenai</td><td class="ro">akenaide kudasai</td><td class="en">Please don't open</td></tr>
+        <tr><td class="ro">suru</td><td class="ro">shinai</td><td class="ro">shinaide kudasai</td><td class="en">Please don't do</td></tr>
+        <tr><td class="ro">kuru</td><td class="ro">konai</td><td class="ro">konaide kudasai</td><td class="en">Please don't come</td></tr>
+        <tr><td class="ro">miru</td><td class="ro">minai</td><td class="ro">minaide kudasai</td><td class="en">Please don't look</td></tr>
+        <tr><td class="ro">sawaru</td><td class="ro">sawaranai</td><td class="ro">sawaranaide kudasai</td><td class="en">Please don't touch</td></tr>
+        <tr><td class="ro">wasureru</td><td class="ro">wasurenai</td><td class="ro">wasurenaide kudasai</td><td class="en">Please don't forget</td></tr>
+      </tbody>
+    </table></div>
+    <div class="exrow" style="margin-top:16px"><div class="exjp">shashin wo toranaide kudasai.</div><div class="exen">Please don't take photos.</div></div>
+    <div class="exrow"><div class="exjp">koko de tabenaide kudasai.</div><div class="exen">Please don't eat here.</div></div>
+    <div class="exrow"><div class="exjp">shinpai shinaide kudasai.</div><div class="exen">Please don't worry.</div></div>
+    <div class="exrow"><div class="exjp">wasurenaide kudasai ne.</div><div class="exen">Please don't forget, okay?</div></div>
+  </div>
+
+  <!-- TE IMASU -->
+  <div class="fsec">
+    <div class="fhdr"><h2>~te imasu &mdash; Two meanings, one structure</h2><span class="ftag">Essential</span></div>
+    <div class="wbox"><strong>Common confusion point:</strong> ~te imasu has two distinct meanings that English speakers often mix up. Context usually clarifies which one applies &mdash; but you need to know both exist.</div>
+    <div class="twrap" style="margin-top:14px"><table>
+      <thead><tr><th>Meaning</th><th>Example</th><th>Hiragana</th><th>English</th></tr></thead>
+      <tbody>
+        <tr class="hlrow"><td class="en" style="font-weight:600">1. Ongoing action<br><span style="font-weight:400">(happening right now)</span></td><td class="ro">tabete imasu</td><td class="hi">&#12383;&#12409;&#12390;&#12356;&#12414;&#12377;</td><td class="en">I am eating (right now)</td></tr>
+        <tr><td></td><td class="ro">hashitte imasu</td><td class="hi">&#12399;&#12375;&#12387;&#12390;&#12356;&#12414;&#12377;</td><td class="en">I am running (right now)</td></tr>
+        <tr><td></td><td class="ro">nani wo shite imasu ka?</td><td class="hi">&#12394;&#12395;&#12434;&#12375;&#12390;&#12356;&#12414;&#12377;&#12363;&#65311;</td><td class="en">What are you doing?</td></tr>
+        <tr class="hlrow"><td class="en" style="font-weight:600">2. Resultant state<br><span style="font-weight:400">(result of completed action)</span></td><td class="ro">mado ga aite imasu</td><td class="hi">&#12414;&#12393;&#12364;&#12354;&#12356;&#12390;&#12356;&#12414;&#12377;</td><td class="en">The window is open (= was opened)</td></tr>
+        <tr><td></td><td class="ro">kekkon shite imasu</td><td class="hi">&#12369;&#12387;&#12371;&#12435;&#12375;&#12390;&#12356;&#12414;&#12377;</td><td class="en">I am married (got married and am in that state)</td></tr>
+        <tr><td></td><td class="ro">shitte imasu</td><td class="hi">&#12375;&#12387;&#12390;&#12356;&#12414;&#12377;</td><td class="en">I know (came to know; now in knowing state)</td></tr>
+      </tbody>
+    </table></div>
+    <div class="ibox"><strong>Analogy:</strong>
+      Think of ~te imasu like English "is ___-ing/ed": "is eating" (ongoing) vs "is broken" (result). Same structure, two meanings. shitte imasu doesn't mean "I am knowing" in a weird sense &mdash; the act of learning already happened and you're now in the state of knowing.
+    </div>
+    <div class="wbox"><strong>Critical: shirimasu vs shitte imasu</strong>
+      Never say shirimasu to mean "I know." That implies future tense &mdash; "I will come to know." Always use: shitte imasu (I know) or shirimasen (I don't know).
+    </div>
+  </div>
+
+  <!-- DECISION TREE -->
+  <div class="fsec">
+    <div class="fhdr"><h2>Which group is this verb? &mdash; Decision tree</h2><span class="ftag">Practical Skill</span></div>
+    <p class="lead" style="margin-bottom:16px">Use this flowchart when you encounter an unfamiliar verb. Start at Step 1.</p>
+    <div class="tree-wrap"><div class="tree">
+      <div class="tnode">
+        <span class="tstep">Step 1</span>
+        <div class="ttext">Is the verb <strong>kuru</strong> or <strong>suru</strong> &mdash; or a compound ending in ~suru?<br><span class="eg">e.g. benkyou suru, kekkon suru, renraku suru</span></div>
+      </div>
+      <div class="tcon"></div>
+      <div class="tnode res-g3">
+        <span class="tstep" style="background:var(--g3)">YES &rarr;</span>
+        <div class="ttext"><strong>Group 3</strong> &mdash; irregular. Memorise kuru and suru; all compounds follow suru.</div>
+      </div>
+      <div class="tcon"></div>
+      <div class="tnode">
+        <span class="tstep">Step 2</span>
+        <div class="ttext">Does the dictionary form end in something <strong>other than -eru or -iru</strong>?<br><span class="eg">e.g. nomu, kaku, hanasu, matsu, kau, isogu</span></div>
+      </div>
+      <div class="tcon"></div>
+      <div class="tnode res-g1">
+        <span class="tstep" style="background:var(--g1)">YES &rarr;</span>
+        <div class="ttext"><strong>Group 1</strong> &mdash; definite. Any verb ending in plain -u (not -eru/-iru) is always Group 1.</div>
+      </div>
+      <div class="tcon"></div>
+      <div class="tnode">
+        <span class="tstep">Step 3</span>
+        <div class="ttext">Ends in <strong>-eru or -iru</strong>? Most are Group 2 &mdash; but some common ones are Group 1 exceptions.<br><span class="eg">Check list: kaeru (go home), hairu, hashiru, kiru (cut), shiru, shaberu, iru (need)...</span></div>
+      </div>
+      <div class="tcon"></div>
+      <div class="tnode res-warn">
+        <span class="tstep" style="background:var(--red)">On list &rarr;</span>
+        <div class="ttext"><strong>Group 1 exception</strong> &mdash; memorise these individually. See "Watch Out" tab for the full list.</div>
+      </div>
+      <div class="tcon"></div>
+      <div class="tnode res-g2">
+        <span class="tstep" style="background:var(--g2)">Not on list &rarr;</span>
+        <div class="ttext"><strong>Group 2</strong> &mdash; safe assumption for any -eru/-iru verb you haven't seen before.</div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ======= PLAIN FORM ======= -->
+<div id="plain" class="section">
+  <h1>Plain Form vs Polite Form</h1>
+  <p class="lead">Polite form (-masu) is for most conversations. Plain form is for casual speech AND as the building block for complex grammar. Both are essential.</p>
+  <h2>Verbs</h2>
+  <div class="twrap"><table>
+    <thead><tr><th>Meaning</th><th>Polite</th><th>Plain</th><th>Form name</th></tr></thead>
+    <tbody>
+      <tr><td class="en">I eat</td><td class="ro">tabemasu</td><td class="ro">taberu</td><td class="fn">Dictionary</td></tr>
+      <tr><td class="en">I don't eat</td><td class="ro">tabemasen</td><td class="ro">tabenai</td><td class="fn">Nai-form</td></tr>
+      <tr><td class="en">I ate</td><td class="ro">tabemashita</td><td class="ro">tabeta</td><td class="fn">Ta-form</td></tr>
+      <tr><td class="en">I didn't eat</td><td class="ro">tabemasendeshita</td><td class="ro">tabenakatta</td><td class="fn">Nakatta-form</td></tr>
+    </tbody>
+  </table></div>
+  <h2>i-Adjectives (e.g. oishii &mdash; tasty)</h2>
+  <div class="twrap"><table>
+    <thead><tr><th>Meaning</th><th>Polite</th><th>Plain</th></tr></thead>
+    <tbody>
+      <tr><td class="en">It's tasty</td><td class="ro">oishii desu</td><td class="ro">oishii</td></tr>
+      <tr><td class="en">Not tasty</td><td class="ro">oishikunai desu</td><td class="ro">oishikunai</td></tr>
+      <tr><td class="en">Was tasty</td><td class="ro">oishikatta desu</td><td class="ro">oishikatta</td></tr>
+      <tr><td class="en">Wasn't tasty</td><td class="ro">oishikunakatta desu</td><td class="ro">oishikunakatta</td></tr>
+    </tbody>
+  </table></div>
+  <h2>na-Adjectives and Nouns (e.g. yuumei &mdash; famous)</h2>
+  <div class="twrap"><table>
+    <thead><tr><th>Meaning</th><th>Polite</th><th>Plain</th></tr></thead>
+    <tbody>
+      <tr><td class="en">It's famous</td><td class="ro">yuumei desu</td><td class="ro">yuumei da</td></tr>
+      <tr><td class="en">Not famous</td><td class="ro">yuumei janai desu</td><td class="ro">yuumei janai</td></tr>
+      <tr><td class="en">Was famous</td><td class="ro">yuumei deshita</td><td class="ro">yuumei datta</td></tr>
+      <tr><td class="en">Wasn't famous</td><td class="ro">yuumei janakatta desu</td><td class="ro">yuumei janakatta</td></tr>
+    </tbody>
+  </table></div>
+  <p style="font-size:0.82rem;color:var(--muted);margin-top:8px;margin-bottom:16px">In casual short replies, drop the da. Say yuumei? / un, yuumei. &mdash; not yuumei da?</p>
+  <div class="ibox"><strong>Why "plain" not "casual"?</strong>
+    Plain form appears inside complex grammar even in formal speech:<br>
+    taberu kamo shiremasen &mdash; I might eat.<br>
+    taberu to omoimasu &mdash; I think I will eat.<br>
+    tabeta koto ga arimasu &mdash; I have eaten it before (experience).<br>
+    The plain form lives inside these structures regardless of register.
+  </div>
+</div>
+
+<!-- ======= WATCH OUT ======= -->
+<div id="watchout" class="section">
+  <h1>Watch Out &mdash; Common Confusables</h1>
+  <p class="lead">These verbs look identical in romaji but belong to different groups. The te-form is usually the giveaway: Group 1 doubles the consonant, Group 2 does not.</p>
+  <div class="cpair">
+    <div class="ccard cc1"><span class="badge bg1">Group 1</span>
+      <div class="cdict">kaeru</div><div class="chira">&#12363;&#12360;&#12427;</div>
+      <div class="ceng">to go home / return</div>
+      <div class="cte"><span class="clbl">Te-form: </span><strong>kaette</strong> (doubled t)</div></div>
+    <div class="ccard cc2"><span class="badge bg2">Group 2</span>
+      <div class="cdict">kaeru</div><div class="chira">&#12363;&#12360;&#12427;</div>
+      <div class="ceng">to change / replace something</div>
+      <div class="cte"><span class="clbl">Te-form: </span><strong>kaete</strong> (single t)</div></div>
+  </div>
+  <div class="cpair">
+    <div class="ccard cc1"><span class="badge bg1">Group 1</span>
+      <div class="cdict">kiru</div><div class="chira">&#12365;&#12427;</div>
+      <div class="ceng">to cut</div>
+      <div class="cte"><span class="clbl">Te-form: </span><strong>kitte</strong> (doubled t)</div></div>
+    <div class="ccard cc2"><span class="badge bg2">Group 2</span>
+      <div class="cdict">kiru</div><div class="chira">&#12365;&#12427;</div>
+      <div class="ceng">to wear / put on clothing</div>
+      <div class="cte"><span class="clbl">Te-form: </span><strong>kite</strong> (single t)</div></div>
+  </div>
+  <div class="cpair">
+    <div class="ccard cc1"><span class="badge bg1">Group 1</span>
+      <div class="cdict">iru</div><div class="chira">&#12356;&#12427;</div>
+      <div class="ceng">to need / require</div>
+      <div class="cte"><span class="clbl">Te-form: </span><strong>itte</strong></div></div>
+    <div class="ccard cc2"><span class="badge bg2">Group 2</span>
+      <div class="cdict">iru</div><div class="chira">&#12356;&#12427;</div>
+      <div class="ceng">to exist / to be (animate)</div>
+      <div class="cte"><span class="clbl">Te-form: </span><strong>ite</strong></div></div>
+  </div>
+  <div class="cpair">
+    <div class="ccard cc1"><span class="badge bg1">Group 1</span>
+      <div class="cdict">hashiru</div><div class="chira">&#12399;&#12375;&#12427;</div>
+      <div class="ceng">to run</div>
+      <div class="cte"><span class="clbl">Te-form: </span><strong>hashitte</strong></div></div>
+    <div class="ccard cc1"><span class="badge bg1">Group 1</span>
+      <div class="cdict">hairu</div><div class="chira">&#12399;&#12356;&#12427;</div>
+      <div class="ceng">to enter / go in</div>
+      <div class="cte"><span class="clbl">Te-form: </span><strong>haitte</strong></div></div>
+  </div>
+  <div class="wbox">Both hashiru and hairu look like Group 2 (ending in -iru). Both are Group 1. The doubled consonant in the te-form (hashitte, haitte) is the Group 1 giveaway for ri-stem verbs.</div>
+
+  <h2 style="margin-top:24px">Group 1 exceptions ending in -eru / -iru</h2>
+  <p style="font-size:0.85rem;color:#555;margin-bottom:12px;line-height:1.6">Memorise this list. Every other -eru/-iru verb you encounter can safely be treated as Group 2.</p>
+  <div class="twrap"><table>
+    <thead><tr><th>Verb</th><th>Hiragana</th><th>Meaning</th><th>Te-form (G1 pattern)</th></tr></thead>
+    <tbody>
+      <tr><td class="ro">kaeru</td><td class="hi">&#12363;&#12360;&#12427;</td><td class="en">to go home</td><td class="ro">kaette</td></tr>
+      <tr><td class="ro">hairu</td><td class="hi">&#12399;&#12356;&#12427;</td><td class="en">to enter</td><td class="ro">haitte</td></tr>
+      <tr><td class="ro">hashiru</td><td class="hi">&#12399;&#12375;&#12427;</td><td class="en">to run</td><td class="ro">hashitte</td></tr>
+      <tr><td class="ro">kiru</td><td class="hi">&#12365;&#12427;</td><td class="en">to cut</td><td class="ro">kitte</td></tr>
+      <tr><td class="ro">shiru</td><td class="hi">&#12375;&#12427;</td><td class="en">to come to know</td><td class="ro">shitte</td></tr>
+      <tr><td class="ro">iru</td><td class="hi">&#12356;&#12427;</td><td class="en">to need</td><td class="ro">itte</td></tr>
+      <tr><td class="ro">shaberu</td><td class="hi">&#12375;&#12419;&#12409;&#12427;</td><td class="en">to chat / talk casually</td><td class="ro">shabette</td></tr>
+    </tbody>
+  </table></div>
+  <div class="ibox" style="margin-top:4px"><strong>Tip:</strong>
+    Group 1 exceptions double the consonant before -te (kitte, hashitte, kaette). Group 2 does not (kite, tabete). When in doubt about a verb, check its te-form.
+  </div>
+</div>
+
+<!-- ======= PHRASES ======= -->
+<div id="phrases" class="section">
+  <h1>Phrase Builder</h1>
+  <p class="lead">Select a verb and a structure to see a real phrase built step by step.</p>
+  <div class="barea">
+    <div class="bstep">
+      <div class="slbl2">1. Choose a verb</div>
+      <select class="bsel" id="bv" onchange="buildPhrase()"><option value="">-- select a verb --</option></select>
+    </div>
+    <div class="bstep">
+      <div class="slbl2">2. Choose a structure</div>
+      <select class="bsel" id="bs" onchange="buildPhrase()">
+        <option value="kudasai">V[te] kudasai &mdash; Please V</option>
+        <option value="naide">V[naide] kudasai &mdash; Please don't V</option>
+        <option value="moiidesu">V[te] mo iidesu ka? &mdash; Can I V?</option>
+        <option value="imasu">V[te] imasu &mdash; am/is V-ing</option>
+        <option value="tai">V[tai] desu &mdash; I want to V</option>
+        <option value="potential">V[potential] &mdash; Can V</option>
+        <option value="mashou">V[mashou] &mdash; Let's V (polite)</option>
+      </select>
+    </div>
+    <div id="bout" style="display:none" class="bout">
+      <div class="or" id="bor"></div>
+      <div class="oh" id="boh"></div>
+      <div class="oe" id="boe"></div>
+      <div class="obd" id="bobd"></div>
+    </div>
+  </div>
+  <h2>Kudasai &mdash; Please V</h2>
+  <div class="twrap"><table><thead><tr><th>Romaji</th><th>Hiragana</th><th>Meaning</th></tr></thead><tbody id="kt"></tbody></table></div>
+  <h2>Naide kudasai &mdash; Please don't V</h2>
+  <div class="twrap"><table><thead><tr><th>Romaji</th><th>Hiragana</th><th>Meaning</th></tr></thead><tbody id="nt"></tbody></table></div>
+  <h2>Mo Iidesu Ka? &mdash; Can I V?</h2>
+  <div class="twrap"><table><thead><tr><th>Romaji</th><th>Hiragana</th><th>Meaning</th></tr></thead><tbody id="mt"></tbody></table></div>
+</div>
+
+<!-- ======= QUIZ ======= -->
+<div id="quiz" class="section">
+  <h1>Conjugation Quiz</h1>
+  <p class="lead">Select which forms and groups to practice, then answer 10 questions.</p>
+  <div id="qsetup" class="qsetup">
+    <h2>Which forms?</h2>
+    <div class="qopts" id="fo">
+      <button class="qbtn sel" data-f="te">Te-form</button>
+      <button class="qbtn sel" data-f="masu">Masu</button>
+      <button class="qbtn" data-f="nai">Nai</button>
+      <button class="qbtn" data-f="dict">Dictionary</button>
+      <button class="qbtn" data-f="tai">Tai (want to)</button>
+      <button class="qbtn" data-f="potential">Potential (can)</button>
+      <button class="qbtn" data-f="volitional">Volitional (let's)</button>
+    </div>
+    <h2 style="margin-top:16px">Which groups?</h2>
+    <div class="qopts" id="go">
+      <button class="qbtn sel" data-g="1">Group 1</button>
+      <button class="qbtn sel" data-g="2">Group 2</button>
+      <button class="qbtn sel" data-g="3">Group 3</button>
+    </div>
+    <button class="btn btnp" style="margin-top:20px" onclick="startQuiz()">Start Quiz</button>
+  </div>
+  <div id="qactive" style="display:none">
+    <div id="qarea"></div>
+    <div style="margin-top:12px"><button class="btn btns" onclick="resetQuiz()">Back to Setup</button></div>
+  </div>
+</div>
+
+</main>
+<script>
+const V=[
+  {g:1,dict:'iku',hira:'\u3044\u304f',masu:'ikimasu',nai:'ikanai',te:'itte',ta:'itta',tai:'ikitai',potential:'ikeru',volitional:'ikou',eng:'to go',note:'te-form exception'},
+  {g:1,dict:'nomu',hira:'\u306e\u3080',masu:'nomimasu',nai:'nomanai',te:'nonde',ta:'nonda',tai:'nomitai',potential:'nomeru',volitional:'nomou',eng:'to drink'},
+  {g:1,dict:'yomu',hira:'\u3088\u3080',masu:'yomimasu',nai:'yomanai',te:'yonde',ta:'yonda',tai:'yomitai',potential:'yomeru',volitional:'yomou',eng:'to read'},
+  {g:1,dict:'kiku',hira:'\u304d\u304f',masu:'kikimasu',nai:'kikanai',te:'kiite',ta:'kiita',tai:'kikitai',potential:'kikeru',volitional:'kikou',eng:'to listen'},
+  {g:1,dict:'kaku',hira:'\u304b\u304f',masu:'kakimasu',nai:'kakanai',te:'kaite',ta:'kaita',tai:'kakitai',potential:'kakeru',volitional:'kakou',eng:'to write'},
+  {g:1,dict:'hanasu',hira:'\u306f\u306a\u3059',masu:'hanashimasu',nai:'hanasanai',te:'hanashite',ta:'hanashita',tai:'hanashitai',potential:'hanaseru',volitional:'hanasou',eng:'to speak'},
+  {g:1,dict:'asobu',hira:'\u3042\u305d\u3076',masu:'asobimasu',nai:'asobanai',te:'asonde',ta:'asonda',tai:'asobitai',potential:'asoberu',volitional:'asobou',eng:'to play'},
+  {g:1,dict:'isogu',hira:'\u3044\u305d\u3050',masu:'isogimasu',nai:'isoganai',te:'isoide',ta:'isoida',tai:'isogitai',potential:'isogeru',volitional:'isogou',eng:'to hurry'},
+  {g:1,dict:'kau',hira:'\u304b\u3046',masu:'kaimasu',nai:'kawanai',te:'katte',ta:'katta',tai:'kaitai',potential:'kaeru',volitional:'kaou',eng:'to buy'},
+  {g:1,dict:'kaeru',hira:'\u304b\u3048\u308b',masu:'kaerimasu',nai:'kaeranai',te:'kaette',ta:'kaetta',tai:'kaeritai',potential:'kaereru',volitional:'kaerou',eng:'to go home',note:'G1 despite -eru ending!'},
+  {g:1,dict:'aruku',hira:'\u3042\u308b\u304f',masu:'arukimasu',nai:'arukanai',te:'aruite',ta:'aruita',tai:'arukitai',potential:'arukeru',volitional:'arukou',eng:'to walk'},
+  {g:1,dict:'matsu',hira:'\u307e\u3064',masu:'machimasu',nai:'matanai',te:'matte',ta:'matta',tai:'machitai',potential:'materu',volitional:'matou',eng:'to wait'},
+  {g:1,dict:'hashiru',hira:'\u306f\u3057\u308b',masu:'hashirimasu',nai:'hashiranai',te:'hashitte',ta:'hashitta',tai:'hashiritai',potential:'hashireru',volitional:'hashirou',eng:'to run'},
+  {g:1,dict:'warau',hira:'\u308f\u3089\u3046',masu:'waraimasu',nai:'warawanai',te:'waratte',ta:'waratta',tai:'waraitai',potential:'waraeru',volitional:'waraou',eng:'to smile/laugh'},
+  {g:2,dict:'taberu',hira:'\u305f\u3079\u308b',masu:'tabemasu',nai:'tabenai',te:'tabete',ta:'tabeta',tai:'tabetai',potential:'taberareru',volitional:'tabeyou',eng:'to eat'},
+  {g:2,dict:'miru',hira:'\u307f\u308b',masu:'mimasu',nai:'minai',te:'mite',ta:'mita',tai:'mitai',potential:'mirareru',volitional:'miyou',eng:'to watch/see'},
+  {g:2,dict:'neru',hira:'\u306d\u308b',masu:'nemasu',nai:'nenai',te:'nete',ta:'neta',tai:'netai',potential:'nerareru',volitional:'neyou',eng:'to sleep'},
+  {g:2,dict:'wasureru',hira:'\u308f\u3059\u308c\u308b',masu:'wasuremasu',nai:'wasurenai',te:'wasurete',ta:'wasureta',tai:'wasuretai',potential:'wasurerareru',volitional:'wasureyou',eng:'to forget'},
+  {g:2,dict:'oriru',hira:'\u304a\u308a\u308b',masu:'orimasu',nai:'orinai',te:'orite',ta:'orita',tai:'oritai',potential:'oriraeru',volitional:'oriyou',eng:'to get off'},
+  {g:2,dict:'akeru',hira:'\u3042\u3051\u308b',masu:'akemasu',nai:'akenai',te:'akete',ta:'aketa',tai:'aketai',potential:'akerareru',volitional:'akeyou',eng:'to open'},
+  {g:3,dict:'kuru',hira:'\u304f\u308b',masu:'kimasu',nai:'konai',te:'kite',ta:'kita',tai:'kitai',potential:'korareru',volitional:'koyou',eng:'to come'},
+  {g:3,dict:'suru',hira:'\u3059\u308b',masu:'shimasu',nai:'shinai',te:'shite',ta:'shita',tai:'shitai',potential:'dekiru',volitional:'shiyou',eng:'to do'},
+  {g:3,dict:'kekkon suru',hira:'\u3051\u3063\u3053\u3093\u3059\u308b',masu:'kekkon shimasu',nai:'kekkon shinai',te:'kekkon shite',ta:'kekkon shita',tai:'kekkon shitai',potential:'kekkon dekiru',volitional:'kekkon shiyou',eng:'to marry'},
+];
+const KL=[
+  {r:'mite kudasai',h:'\u307f\u3066\u304f\u3060\u3055\u3044',e:'Please look / watch'},
+  {r:'matte kudasai',h:'\u307e\u3063\u3066\u304f\u3060\u3055\u3044',e:'Please wait'},
+  {r:'tabete kudasai',h:'\u305f\u3079\u3066\u304f\u3060\u3055\u3044',e:'Please eat'},
+  {r:'kitte kudasai',h:'\u304d\u3063\u3066\u304f\u3060\u3055\u3044',e:'Please buy (ticket)'},
+  {r:'kite kudasai',h:'\u304d\u3066\u304f\u3060\u3055\u3044',e:'Please come'},
+  {r:'suwatte kudasai',h:'\u3059\u308f\u3063\u3066\u304f\u3060\u3055\u3044',e:'Please sit'},
+  {r:'notte kudasai',h:'\u306e\u3063\u3066\u304f\u3060\u3055\u3044',e:'Please get on / ride'},
+  {r:'orite kudasai',h:'\u304a\u308a\u3066\u304f\u3060\u3055\u3044',e:'Please get off'},
+  {r:'narande kudasai',h:'\u306a\u3089\u3093\u3067\u304f\u3060\u3055\u3044',e:'Please line up / queue'},
+  {r:'hanashite kudasai',h:'\u306f\u306a\u3057\u3066\u304f\u3060\u3055\u3044',e:'Please speak'},
+  {r:'motte kudasai',h:'\u3082\u3063\u3066\u304f\u3060\u3055\u3044',e:'Please hold it'},
+  {r:'kaette kudasai',h:'\u304b\u3048\u3063\u3066\u304f\u3060\u3055\u3044',e:'Please go home'},
+];
+const NL=[
+  {r:'tabenaide kudasai',h:'\u305f\u3079\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't eat"},
+  {r:'ikanaide kudasai',h:'\u3044\u304b\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't go"},
+  {r:'minaide kudasai',h:'\u307f\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't look"},
+  {r:'sawaranaide kudasai',h:'\u3055\u308f\u3089\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't touch"},
+  {r:'akenaide kudasai',h:'\u3042\u3051\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't open it"},
+  {r:'hanasanaide kudasai',h:'\u306f\u306a\u3055\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't speak"},
+  {r:'wasurenaide kudasai',h:'\u308f\u3059\u308c\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't forget"},
+  {r:'shinpai shinaide kudasai',h:'\u3057\u3093\u3071\u3044\u3057\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't worry"},
+  {r:'konaide kudasai',h:'\u3053\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't come"},
+  {r:'shinaide kudasai',h:'\u3057\u306a\u3044\u3067\u304f\u3060\u3055\u3044',e:"Please don't do it"},
+];
+const ML=[
+  {r:'sawatte mo iidesu ka?',h:'\u3055\u308f\u3063\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I touch it?'},
+  {r:'tabete mo iidesu ka?',h:'\u305f\u3079\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I eat it?'},
+  {r:'mite mo iidesu ka?',h:'\u307f\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I take a look?'},
+  {r:'moratte mo iidesu ka?',h:'\u3082\u3089\u3063\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I have / take it?'},
+  {r:'haitte mo iidesu ka?',h:'\u306f\u3044\u3063\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I enter?'},
+  {r:'shichaku-shite mo iidesu ka?',h:'\u3057\u3061\u3083\u304f\u3057\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I try this on?'},
+  {r:'karite mo iidesu ka?',h:'\u304b\u308a\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I borrow it?'},
+  {r:'tsukatte mo iidesu ka?',h:'\u3064\u304b\u3063\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I use it?'},
+  {r:'akete mo iidesu ka?',h:'\u3042\u3051\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I open it?'},
+  {r:'suwatte mo iidesu ka?',h:'\u3059\u308f\u3063\u3066\u3082\u3044\u3044\u3067\u3059\u304b\uff1f',e:'Can I sit?'},
+];
+
+function show(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.bnavbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  // sync bottom nav highlight
+  const bnavBtn = document.querySelector('.bnavbtn[data-label]');
+  document.querySelectorAll('.bnavbtn[data-label]').forEach(b=>{
+    if(b.onclick && b.onclick.toString().includes("'"+id+"'"))b.classList.add('active');
+  });
+  if(btn && btn.closest('.bnav'))btn.classList.add('active');
+  if(id==='explorer')renderVerbs();
+  if(id==='phrases')renderPhrases();
+}
+function showMore(btn){
+  document.getElementById('moreDrawer').classList.add('open');
+  document.getElementById('moreOverlay').classList.add('open');
+  btn.classList.add('more-active');
+}
+function closeMore(){
+  document.getElementById('moreDrawer').classList.remove('open');
+  document.getElementById('moreOverlay').classList.remove('open');
+  document.querySelectorAll('.bnavbtn').forEach(b=>b.classList.remove('more-active'));
+}
+function showFromMore(id){
+  closeMore();
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.bnavbtn').forEach(b=>b.classList.remove('active','more-active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='phrases')renderPhrases();
+}
+
+function renderVerbs(){
+  const gf=document.getElementById('gf').value;
+  const sr=document.getElementById('vs').value.toLowerCase();
+  const bc={1:'bg1',2:'bg2',3:'bg3'},bt={1:'Group 1',2:'Group 2',3:'Group 3'};
+  const f=V.filter(v=>(gf==='all'||v.g==gf)&&(!sr||v.dict.includes(sr)||v.eng.includes(sr)));
+  document.getElementById('vlist').innerHTML=f.map(v=>`
+    <div class="vcard">
+      <div class="vhdr">
+        <span class="vdict">${v.dict}</span>
+        <span class="vhira">${v.hira}</span>
+        <span class="badge ${bc[v.g]}">${bt[v.g]}</span>
+        <span class="vmean">${v.eng}</span>
+        ${v.note?`<span style="font-size:0.72rem;color:var(--red)">${v.note}</span>`:''}
+      </div>
+      <div class="fgrid">
+        <div class="fchip"><div class="fl">Dictionary</div><div class="fv">${v.dict}</div><div class="fh">${v.hira}</div></div>
+        <div class="fchip"><div class="fl">Masu</div><div class="fv">${v.masu}</div></div>
+        <div class="fchip"><div class="fl">Nai</div><div class="fv">${v.nai}</div></div>
+        <div class="fchip"><div class="fl">Te-form</div><div class="fv" style="color:var(--red)">${v.te}</div></div>
+        <div class="fchip"><div class="fl">Ta (past)</div><div class="fv">${v.ta}</div></div>
+        <div class="fchip"><div class="fl">Tai (want to)</div><div class="fv" style="color:var(--teal)">${v.tai}</div></div>
+        <div class="fchip"><div class="fl">Potential (can)</div><div class="fv" style="color:var(--g2)">${v.potential}</div></div>
+        <div class="fchip"><div class="fl">Volitional</div><div class="fv" style="color:var(--g3)">${v.volitional}</div></div>
+      </div>
+    </div>`).join('')||'<p style="color:var(--muted);padding:12px">No verbs match.</p>';
+}
+
+function renderPhrases(){
+  const sel=document.getElementById('bv');
+  if(sel.options.length<=1)V.forEach(v=>{const o=document.createElement('option');o.value=v.dict;o.textContent=v.dict+' — '+v.eng;sel.appendChild(o);});
+  document.getElementById('kt').innerHTML=KL.map(p=>`<tr><td class="ro">${p.r}</td><td class="hi">${p.h}</td><td class="en">${p.e}</td></tr>`).join('');
+  document.getElementById('nt').innerHTML=NL.map(p=>`<tr><td class="ro">${p.r}</td><td class="hi">${p.h}</td><td class="en">${p.e}</td></tr>`).join('');
+  document.getElementById('mt').innerHTML=ML.map(p=>`<tr><td class="ro">${p.r}</td><td class="hi">${p.h}</td><td class="en">${p.e}</td></tr>`).join('');
+}
+
+function buildPhrase(){
+  const vd=document.getElementById('bv').value;
+  const st=document.getElementById('bs').value;
+  if(!vd)return;
+  const v=V.find(x=>x.dict===vd);
+  if(!v)return;
+  const eng=v.eng.replace('to ','');
+  let r,h,e,bd;
+  if(st==='kudasai'){r=v.te+' kudasai';h=v.te+' \u304f\u3060\u3055\u3044';e='Please '+eng;bd=['<div class="bp">'+v.te+' <span>(te-form)</span></div>','<div class="bp">kudasai <span>(please)</span></div>'];}
+  else if(st==='naide'){r=v.nai+'de kudasai';h=v.nai+'\u3067\u304f\u3060\u3055\u3044';e="Please don't "+eng;bd=['<div class="bp">'+v.nai+' <span>(nai-form)</span></div>','<div class="bp">de kudasai <span>(do not)</span></div>'];}
+  else if(st==='moiidesu'){r=v.te+' mo iidesu ka?';h=v.te+' \u3082\u3044\u3044\u3067\u3059\u304b\uff1f';e='Can I '+eng+'?';bd=['<div class="bp">'+v.te+' <span>(te-form)</span></div>','<div class="bp">mo iidesu ka? <span>(permission)</span></div>'];}
+  else if(st==='imasu'){r=v.te+' imasu';h=v.te+' \u3044\u307e\u3059';e='am/is '+eng+'ing';bd=['<div class="bp">'+v.te+' <span>(te-form)</span></div>','<div class="bp">imasu <span>(ongoing)</span></div>'];}
+  else if(st==='tai'){r=v.tai+' desu';h=v.tai+' \u3067\u3059';e='I want to '+eng;bd=['<div class="bp">'+v.tai+' <span>(tai-form)</span></div>','<div class="bp">desu <span>(polite)</span></div>'];}
+  else if(st==='potential'){r=v.potential;h=v.potential;e='can '+eng+' (add masu/masen for polite)';bd=['<div class="bp">'+v.potential+' <span>(potential form)</span></div>','<div class="bp">+masu / +masen <span>(polite)</span></div>'];}
+  else if(st==='mashou'){const ms=v.masu.replace('masu','mashou');r=ms;h=ms;e="Let's "+eng;bd=['<div class="bp">'+ms+' <span>(polite volitional)</span></div>','<div class="bp">plain: '+v.volitional+'</div>'];}
+  document.getElementById('bor').textContent=r;
+  document.getElementById('boh').textContent=h;
+  document.getElementById('boe').textContent=e;
+  document.getElementById('bobd').innerHTML=bd.join('');
+  document.getElementById('bout').style.display='block';
+}
+
+let QS={q:[],i:0,sc:0,ans:false};
+document.querySelectorAll('#fo .qbtn').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('sel')));
+document.querySelectorAll('#go .qbtn').forEach(b=>b.addEventListener('click',()=>b.classList.toggle('sel')));
+function shuffle(a){return[...a].sort(()=>Math.random()-0.5)}
+
+function startQuiz(){
+  const forms=[...document.querySelectorAll('#fo .qbtn.sel')].map(b=>b.dataset.f);
+  const groups=[...document.querySelectorAll('#go .qbtn.sel')].map(b=>parseInt(b.dataset.g));
+  if(!forms.length||!groups.length){alert('Select at least one form and one group.');return;}
+  const pool=V.filter(v=>groups.includes(v.g));
+  if(pool.length<2){alert('Select more groups for variety.');return;}
+  const fm={te:{k:'te',l:'te-form'},masu:{k:'masu',l:'masu-form'},nai:{k:'nai',l:'nai-form'},dict:{k:'dict',l:'dictionary form'},tai:{k:'tai',l:'tai-form (want to)'},potential:{k:'potential',l:'potential (can)'},volitional:{k:'volitional',l:"volitional (let's)"}};
+  const qs=[];
+  shuffle(pool).forEach(v=>{
+    forms.forEach(f=>{
+      const m=fm[f],ans=v[m.k];
+      const dist=shuffle(pool.filter(x=>x.dict!==v.dict)).map(x=>x[m.k]).filter((d,i,a)=>d!==ans&&a.indexOf(d)===i).slice(0,3);
+      if(!dist.length)return;
+      qs.push({v,f,l:m.l,ans,choices:shuffle([ans,...dist])});
+    });
+  });
+  QS={q:shuffle(qs).slice(0,10),i:0,sc:0,ans:false};
+  document.getElementById('qsetup').style.display='none';
+  document.getElementById('qactive').style.display='block';
+  renderQ();
+}
+
+function renderQ(){
+  const a=document.getElementById('qarea');
+  if(QS.i>=QS.q.length){
+    const p=Math.round(QS.sc/QS.q.length*100);
+    a.innerHTML='<div class="qscore"><div class="snum">'+QS.sc+'/'+QS.q.length+'</div><div class="slbl">'+p+'% correct'+(p===100?' \ud83c\udf89':p>=70?' \u2014 great work!':' \u2014 keep practicing!')+'</div><button class="btn btnp" onclick="startQuiz()">Try Again</button></div>';
+    return;
+  }
+  const q=QS.q[QS.i];
+  a.innerHTML='<div class="qcard"><div class="qprog">Question '+(QS.i+1)+' of '+QS.q.length+' &middot; Score: '+QS.sc+'</div><div class="qprompt">Dictionary form</div><div class="qword">'+q.v.dict+'</div><div class="qhira">'+q.v.hira+'</div><div class="qmean">'+q.v.eng+'</div><div class="qask">What is the <strong>'+q.l+'</strong>?</div><div class="qchoices">'+q.choices.map(c=>'<button class="qchoice" onclick="ansQ(this)">'+c+'</button>').join('')+'</div><div id="qfb"></div></div>';
+}
+
+function ansQ(btn){
+  if(QS.ans)return;
+  QS.ans=true;
+  const q=QS.q[QS.i];
+  const correct=btn.textContent.trim()===q.ans;
+  if(correct)QS.sc++;
+  document.querySelectorAll('.qchoice').forEach(b=>{if(b.textContent.trim()===q.ans)b.classList.add('reveal');b.onclick=null;});
+  if(!correct)btn.classList.add('wrong');
+  const fb=document.getElementById('qfb');
+  fb.className='qfb '+(correct?'correct':'wrong');
+  fb.textContent=correct?'\u2713 Correct!':'\u2717 The answer is: '+q.ans;
+  setTimeout(()=>{QS.i++;QS.ans=false;renderQ();},1600);
+}
+
+function resetQuiz(){
+  document.getElementById('qsetup').style.display='block';
+  document.getElementById('qactive').style.display='none';
+}
+</script>
+
+<div class="bnav" id="bnav">
+  <button class="bnavbtn active" onclick="show('overview',this)" data-label="Overview">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Overview</span>
+  </button>
+  <button class="bnavbtn" onclick="show('explorer',this)" data-label="Conjugator">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+    <span>Conjugator</span>
+  </button>
+  <button class="bnavbtn" onclick="show('teform',this)" data-label="Te-form">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v16M4 8h16"/></svg>
+    <span>Te-form</span>
+  </button>
+  <button class="bnavbtn" onclick="show('newforms',this)" data-label="New Forms">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 3"/></svg>
+    <span>New Forms</span>
+  </button>
+  <button class="bnavbtn" onclick="showMore(this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
+    <span>More</span>
+  </button>
+</div>
+
+<div class="more-drawer" id="moreDrawer">
+  <div class="more-drawer-inner">
+    <button class="more-item" onclick="showFromMore('plain')">Plain Form</button>
+    <button class="more-item" onclick="showFromMore('watchout')">Watch Out</button>
+    <button class="more-item" onclick="showFromMore('phrases')">Phrases</button>
+    <button class="more-item" onclick="showFromMore('quiz')">Quiz</button>
+    <button class="more-close" onclick="closeMore()">Close</button>
+  </div>
+</div>
+<div class="more-overlay" id="moreOverlay" onclick="closeMore()"></div>
+
+</body>
+</html>
