@@ -2,7 +2,7 @@
   "name": "Japanese Verbs",
   "short_name": "動詞",
   "description": "Interactive Japanese verb conjugation study tool",
-  "start_url": "/",
+  "start_url": "/japanese-verbs/",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#1a1a2e",
